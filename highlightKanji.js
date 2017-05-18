@@ -4,27 +4,59 @@ $(document).ready(function() {
 var testText = $('p:last').text();
 //$('div, li, ol, p, h1, h2, h3, h4, h5, span, a, th, td, code, strong, em').css("color", "red");
 
-var textObject = {
-  text
-}
 
 var DOMlibrary = $('li, p, h1, h2, h3, h4, h5');
 console.log(typeof(DOMlibrary));
 console.log(DOMlibrary);
 var textLibrary = [];
 var counter = 0;
+var textObjectArray = []
 DOMlibrary.each(function(item){
-  $(this).addClass("wanikani" + counter);
-  counter += 1;
+  var uniqueClass = "wanikani" + counter;
+  $(this).addClass(uniqueClass);
+  // takes DOM object and grabs it's text
   var tempLibrary = $(this).text();
-  var splitTempLibrary = tempLibrary.split(" ") //Here will be the split function for JAPANESE
-   textLibrary.push($(this).text());
+  // splits that text up into words
+  var splitTempLibrary = tempLibrary.split(" "); //Here will be the split function for JAPANESE
+  // push these objects into an array that holds each text item and it's element
+  for(var i = 0; i < splitTempLibrary.length; i++){
+    // cleans strings of punctuation
+    var toPush = splitTempLibrary[i].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+    // should be replaced with Red-black tree
+    textObjectArray.push({text: toPush, class: uniqueClass});
+  }
+  textLibrary.push($(this).text());
+  counter += 1;
  });
 
-$(".wanikani5").css("color","blue");
-$(".wanikani5").children().css("color","blue");
+var objects = textObjectArray.filter(function(v){
+  // grabs all objects with text of japanese
+  return v["text"].toLowerCase() == "journey";
+});
+objects.forEach(function(match){
 
-console.log(textLibrary);
+  var currentElement = $("." + match.class);
+  console.log(match.text);
+  var tempText = currentElement.text();
+  tempText = tempText.replace(match.text,"<span style=\"color:blue\">" + match.text + "</span>");
+  console.log(tempText);
+  if(currentElement.is('li')){
+    currentElement.children().html(tempText);
+  }
+  else{
+    currentElement.html(tempText);
+  }
+  // changes their overarching classes to blue;
+
+   //$("." + match.class).css("color","blue");
+   //$("." + match.class).children().css("color","blue");
+  //console.log($("." + match.class));
+})
+//console.log(objects);
+
+ //console.log(textObjectArray);
+
+
 
 
 
