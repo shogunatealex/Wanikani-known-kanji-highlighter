@@ -52,6 +52,21 @@ objects.forEach(function(match){
    //$("." + match.class).children().css("color","blue");
   //console.log($("." + match.class));
 })
+
+$.getJSON("https://www.wanikani.com/api/user/4a5d0dbcc23712212e7684fe99935275/vocabulary", function(data){
+  console.log(data);
+  console.log(data.requested_information.general);
+  $.each(data.requested_information.general,function(index){
+    console.log(data.requested_information.general[index]);
+  });
+  $.each(data,function(index){
+    console.log(data[index]);
+  });
+});
+
+
+
+//https://www.wanikani.com/api/user/4a5d0dbcc23712212e7684fe99935275/vocabulary/1
 //console.log(objects);
 
  //console.log(textObjectArray);
