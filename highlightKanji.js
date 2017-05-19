@@ -83,75 +83,71 @@ function searchData () {
     })
     console.log(specificTree);
     // grab all of the html pages text
-    var DOMlibrary = $('span, ul, p, h1, h2, h3, h4, h5');
-    console.log(typeof(DOMlibrary));
+    var DOMlibrary = $('span, li, p, h1, h2, h3, h4, h5');
     console.log(DOMlibrary);
-    var textLibrary = [];
-    var counter = 0;
-    var textObjectArray = []
-    DOMlibrary.each(function(item){
-      var uniqueClass = "wanikani" + counter;
-      $(this).addClass(uniqueClass);
-      // takes DOM object and grabs it's text
-      var tempLibrary = $(this).text();
-      // splits that text up into words (right now splits by every character)
-      var splitTempLibrary = tempLibrary.split(''); //Here will be the split function for JAPANESE
-      // push these objects into an array that holds each text item and it's element
-      for(var i = 0; i < splitTempLibrary.length; i++){
+    console.log(DOMlibrary["0"].textContent)
+    // link through grabbing all their text
+    var textObjectArray = [];
+    for (var i = 0; i < DOMlibrary.length; i++){
+      var arrayIndex = i;
+      var splitTempLibrary = DOMlibrary[i.toString()].innerHTML.split("");
+      //DOMlibrary[i.toString()].innerHTML = DOMlibrary[i.toString()].innerHTML.replace("昨日", "<span style=\"color:blue\">replaced</span>");
+
+      //console.log(DOMlibrary[i.toString()].textContent);
+      //console.log(DOMlibrary[i.toString()].innerHTML);
+      //console.log(DOMlibrary[i.toString()].nodeName);
+
+      for(var j = 0; j < splitTempLibrary.length; j++){
         // cleans strings of punctuation
-        var toPush = splitTempLibrary[i].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、]/g,"");
+        var toPush = splitTempLibrary[j].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、]/g,"");
         if (toPush == "" || (toPush.toLowerCase() != toPush.toUpperCase()) || toPush == " "){
 
-        }
+        } // end if
         else{
-          console.log(toPush);
-          textObjectArray.push({text: toPush, class: uniqueClass});
-        }
+          var specificTree = tree["vocabulary-list"].filter(function(v){
+            return v["character"] == toPush.toString();
+          })
+          if(specificTree.length > 0){
+            console.log(DOMlibrary[i].innerHTML);
+            var color;
+            if(specificTree[0].srs.toString() == "apprentice"){
+              color = "#F300A2";
+            }
+            else if(specificTree[0].srs.toString() == "guru"){
+              color ="#9F34B9";
+            }
+            else if(specificTree[0].srs.toString() == "master"){
+              color = "#4765E0";
+            }
+            else if(specificTree[0].srs.toString() == "enlightened"){
+              color ="#009CEA";
+            }
+            else if(specificTree[0].srs.toString() == "burned"){
+              color = "#B04A49";
+            }
+            var replace = new RegExp(specificTree[0].character.toString(), "g");
+            DOMlibrary[i].innerHTML = DOMlibrary[i].innerHTML.replace(replace, "<span style=\"color: " + color + "\">" + specificTree[0].character + "</span>");
+          }
+          textObjectArray.push({text: toPush, DOMposition: arrayIndex});
+        } // end else
         // should be replaced with Red-black tree
-      }
-      textLibrary.push($(this).text());
-      counter += 1;
-     });
-     console.log(textObjectArray);
-     tree["vocabulary-list"].forEach(function(word){
-       var temp = textObjectArray.filter(function(v){
-         return v["text"] == word.character;
-       })
-       if(temp.length > 0){
-         console.log("something here");
-         //console.log(temp);
-         temp.forEach(function(match){
+      } // end for j
+    } // end for i
 
-           var currentElement = $("." + match.class);
-           //console.log(match.text);
-           var tempText = currentElement.text();
-           tempText = tempText.replace(match.text,"<span style=\"color:blue\">" + match.text + "</span>");
-           //console.log(tempText);
-           if(currentElement.is('li')){
-             currentElement.children().html(tempText);
-           }
-           else{
-             currentElement.html(tempText);
-           }
-           // changes their overarching classes to blue;
+    var counter = 0;
 
-            //$("." + match.class).css("color","blue");
-            //$("." + match.class).children().css("color","blue");
-           //console.log($("." + match.class));
-         })
-       }
-       else{
-         console.log("nothing here");
-       }
-     })
+
+
+
+
     // var objects = textObjectArray.filter(function(v){
     //   // grabs all objects with text of japanese
     //   return v["text"].toLowerCase() == "journey";
     // });
 
 
-  })
-};
+  }) // end chrome.storage.get
+}; //end search data
 
 
 callWanikani(function(x){
