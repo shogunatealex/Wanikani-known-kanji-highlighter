@@ -1,5 +1,9 @@
 $(document).ready(function() {
-        console.log('the DOM is ready');
+  callWanikani(function(x){
+    saveData(x,function(){
+      searchData();
+    })
+  });
     });
 var testText = $('p:last').text();
 //$('div, li, ol, p, h1, h2, h3, h4, h5, span, a, th, td, code, strong, em').css("color", "red");
@@ -83,7 +87,7 @@ function searchData () {
     })
     console.log(specificTree);
     // grab all of the html pages text
-    var DOMlibrary = $('span, li, p, h1, h2, h3, h4, h5');
+    var DOMlibrary = $('tr, td, ruby, span, li, p, h1, h2, h3, h4, h5');
     console.log(DOMlibrary);
     console.log(DOMlibrary["0"].textContent)
     // link through grabbing all their text
@@ -126,7 +130,7 @@ function searchData () {
               color = "#B04A49";
             }
             var replace = new RegExp(specificTree[0].character.toString(), "g");
-            DOMlibrary[i].innerHTML = DOMlibrary[i].innerHTML.replace(replace, "<span style=\"color: " + color + "\">" + specificTree[0].character + "</span>");
+            DOMlibrary[i].innerHTML = DOMlibrary[i].innerHTML.replace(replace, "<span style=\"color: " + color + ";padding:0; margin: 0; display: inline\">" + specificTree[0].character + "</span>");
           }
           textObjectArray.push({text: toPush, DOMposition: arrayIndex});
         } // end else
@@ -150,11 +154,7 @@ function searchData () {
 }; //end search data
 
 
-callWanikani(function(x){
-  saveData(x,function(){
-    searchData();
-  })
-});
+
 
 
 
