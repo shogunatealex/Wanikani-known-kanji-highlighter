@@ -1,4 +1,5 @@
-$(window).on("load", function() {
+$(document).ready(function() {
+  console.log("here");
   callWanikani(function(x){
     console.log('here');
     saveData(x,function(){
@@ -24,6 +25,7 @@ function callWanikani (callback){
   // pull the storage initializer from storage
   chrome.storage.sync.get("storage-initial",function(storage){
     // if no vocabulary dictionary has been saved, start saving it.
+    storage["storage-initial"] = 1;
     if(storage["storage-initial"] == 0){
       // call the wanikani server to get the users vocab list up to their level
       $.getJSON("https://www.wanikani.com/api/user/4a5d0dbcc23712212e7684fe99935275/kanji", function(data){
@@ -47,7 +49,7 @@ function callWanikani (callback){
       });
 
       //tells the console that it doesn't need to keep reloading the library from wanikani.
-      chrome.storage.sync.set({"storage-initial": 1} ,function(){
+      chrome.storage.sync.set({"storage-initial": 0} ,function(){
         console.log("Dictionary should be stored");
       })
 
@@ -78,67 +80,210 @@ function saveData(vocabList, callback){
 }
 
 
+var matchText = function(node, regex, callback, excludeElements) {
+
+    excludeElements || (excludeElements = ['script', 'style', 'iframe', 'canvas']);
+    var child;
+    if (!node){
+      child = null;
+    }
+    else{
+      child = node.firstChild;
+    }
+
+
+    while (child) {
+        switch (child.nodeType) {
+        case 1:
+            if (excludeElements.indexOf(child.tagName.toLowerCase()) > -1)
+                break;
+            matchText(child, regex, callback, excludeElements);
+            break;
+        case 3:
+            var bk = 0;
+            child.data.replace(regex, function(all) {
+                var args = [].slice.call(arguments),
+                    offset = args[args.length - 2],
+                    newTextNode = child.splitText(offset+bk), tag;
+                bk -= child.data.length + all.length;
+
+                newTextNode.data = newTextNode.data.substr(all.length);
+                tag = callback.apply(window, [child].concat(args));
+                child.parentNode.insertBefore(tag, newTextNode);
+                child = newTextNode;
+            });
+            regex.lastIndex = 0;
+            break;
+        }
+
+        child = child.nextSibling;
+    }
+
+    return node;
+};
 
 function searchData () {
-  // retrieve the data saved locally
   chrome.storage.local.get("vocabulary-list", function(tree){
-    //console.log(tree);
-    //console.log("hello" == "hello");
-    // grab all of the html pages text
-    //var DOMlibrary = $('tr, td, ruby, span, p, h1, h2, h3, h4, h5, a');
-    var temp = $('body').find("*").contents().each(function(){
-      if(this.nodeType == 3){
-        var u = this.nodeValue;
-        var tempU = "";
-        //console.log(u);
-        for(var i = 0; i < u.length; i++){
-          //console.log(u[i] + " " + i);
-          //u[i] = u[i].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、1234567890?)(,}{})]/g,"");
-          var checker = "[]().,;}{1234567890!@#$%^&*-_\n\r=+\"\'`~?.,<>。わらやまはなたさかありみひにちしきいるゆむふぬつすくうれめへねてせけえをろよもほのとそこおん ".split("");
-          //var checker = ["[", "]", "(", ")", ".", ",", ";", "}", "{", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0","#", "<", ":", "=", "!", "-", "_", "&", "@", "\"", "\'"];
-          if(u[i] == "" || (u[i].toLowerCase() != u[i].toUpperCase()) || u[i] == " " || checker.indexOf(u[i]) > -1){
-            tempU+= u[i];
-          }
-          else{
-          //console.log(u[i]);
-            //console.log(u[i]);
-            var specificTree = tree["vocabulary-list"].filter(function(v){
-              return v["character"] == u[i].toString();
-            }); // end function
-            if(specificTree.length > 0){
-              var replace = new RegExp(specificTree[0].character.toString(), "g");
-              //$(this).replaceWith(u.replace(replace,'|'));
-              var color;
-              if(specificTree[0].srs.toString() == "apprentice"){
-                color = "#F300A2";
-              }
-              else if(specificTree[0].srs.toString() == "guru"){
-                color ="#9F34B9";
-              }
-              else if(specificTree[0].srs.toString() == "master"){
-                color = "#4765E0";
-              }
-              else if(specificTree[0].srs.toString() == "enlighten"){
-                color ="#009CEA";
-              }
-              else if(specificTree[0].srs.toString() == "burned"){
-                color = "#B04A49";
-              }
-              tempU += '<span style=\"color:' + color + '; padding:0; margin: 0; display: inline\">' + specificTree[0].character + '</span>';
-              //$(this).replaceWith(tempU.replace(replace,'<span style=\"color:blue; padding:0; margin: 0; display: inline\">' + specificTree[0].character + '</span>'));
-              //console.log(u.length);
-            }
-            else{
-              tempU+=u[i];
-            }
-
-          } // end else
-        } // end for
-        $(this).replaceWith(tempU);
-        //console.log(tempU);
+    console.time('matchText');
+    console.log(tree);
+    var html = ($("body")[0].innerHTML);
+    for (var x=0; x < tree["vocabulary-list"].length; x++){
+      searchTerm = tree["vocabulary-list"][x].character;
+      var memorizeLevel = tree["vocabulary-list"][x].srs;
+      if(html.search(searchTerm) == -1){
+        console.log("here");
+        continue;
       }
-    });
-  }) // end chrome.storage.get
+      matchText(document.getElementsByTagName("body")[0], new RegExp(searchTerm, "g"), function(node, match, offset) {
+          var span = document.createElement("span");
+          if(memorizeLevel == "apprentice"){
+            span.className = "wanikani-apprentice";
+          }
+          else if (memorizeLevel == "guru"){
+            span.className = "wanikani-guru";
+          }
+          else if (memorizeLevel == "master"){
+            span.className = "wanikani-master";
+          }
+          else if (memorizeLevel == "enlighten"){
+            span.className = "wanikani-enlighten";
+          }
+          else if (memorizeLevel == "burned"){
+            span.className = "wanikani-burned";
+          }
+
+          span.textContent = match;
+          return span;
+      });
+    }
+    console.timeEnd('matchText');
+
+  });
+
+
+//   console.timeEnd('matchText');
+//   function getTextNodesIn(node, includeWhitespaceNodes) {
+//     var textNodes = [], nonWhitespaceMatcher = /\S/;
+//
+//     function getTextNodes(node) {
+//         if (node.nodeType == 3) {
+//             if (includeWhitespaceNodes || nonWhitespaceMatcher.test(node.nodeValue)) {
+//                 textNodes.push(node);
+//             }
+//         } else {
+//             for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+//                 getTextNodes(node.childNodes[i]);
+//             }
+//         }
+//     }
+//
+//     getTextNodes(node);
+//     return textNodes;
+// }
+//
+//
+//   console.log(getTextNodesIn($("body")[0]));
+  //retrieve the data saved locally,
+  // chrome.storage.local.get("vocabulary-list", function(tree){
+  //   // go through all text nodes
+  //   console.log(tree);
+  //   $.each(getTextNodesIn($("body")[0]), function(index, item){
+  //     //console.log(item.parentElement);
+  //     var u = item.textContent;
+  //     var tempU = "";
+  //     //console.log(u);
+  //     for(var i = 0; i < u.length; i++){
+  //       //console.log(u[i])
+  //       var specificTree = tree["vocabulary-list"].filter(function(v){
+  //         return v["character"] == u[i].toString();
+  //       }); // end function
+  //       if(specificTree.length > 0){
+  //         tempU += u[i];
+  //         var color;
+  //         if(specificTree[0].srs.toString() == "apprentice"){
+  //           tempU += '<span class="wanikani-apprentice" style=\"padding:0; margin: 0; display: inline\">';
+  //         }
+  //         else if(specificTree[0].srs.toString() == "guru"){
+  //           tempU += '<span class="wanikani-guru" style=\"padding:0; margin: 0; display: inline\">';
+  //         }
+  //         else if(specificTree[0].srs.toString() == "master"){
+  //           tempU += '<span class="wanikani-master" style=\"padding:0; margin: 0; display: inline\">';
+  //         }
+  //         else if(specificTree[0].srs.toString() == "enlighten"){
+  //           tempU += '<span class="wanikani-enlighten" style=\"padding:0; margin: 0; display: inline\">';
+  //         }
+  //         else if(specificTree[0].srs.toString() == "burned"){
+  //           tempU += '<span class="wanikani-burned" style=\"padding:0; margin: 0; display: inline\">';
+  //         }
+  //         tempU += specificTree[0].character + '</span>';
+  //
+  //       }// end if
+  //       else{
+  //         tempU += u[i];
+  //       }
+  //     }// end for
+  //     item.data = tempU;
+  //     console.log($(item.parentElement));
+  //
+  //   });
+  // });
+  //   //console.log(tree);
+  //   //console.log("hello" == "hello");
+  //   // grab all of the html pages text
+  //   //var DOMlibrary = $('tr, td, ruby, span, p, h1, h2, h3, h4, h5, a');
+  //   var temp = $('body').find("*").contents().each(function(){
+  //     if(this.nodeType == 3){
+  //       var u = this.nodeValue;
+  //       var tempU = "";
+  //       //console.log(u);
+  //       for(var i = 0; i < u.length; i++){
+  //         //console.log(u[i] + " " + i);
+  //         //u[i] = u[i].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、1234567890?)(,}{})]/g,"");
+  //         var checker = "[]().,;}{1234567890!@#$%^&*-_\n\r=+\"\'`~?.,<>。わらやまはなたさかありみひにちしきいるゆむふぬつすくうれめへねてせけえをろよもほのとそこおん ".split("");
+  //         //var checker = ["[", "]", "(", ")", ".", ",", ";", "}", "{", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0","#", "<", ":", "=", "!", "-", "_", "&", "@", "\"", "\'"];
+  //         if(u[i] == "" || (u[i].toLowerCase() != u[i].toUpperCase()) || u[i] == " " || checker.indexOf(u[i]) > -1){
+  //           tempU+= u[i];
+  //         }
+  //         else{
+  //         //console.log(u[i]);
+  //           //console.log(u[i]);
+  //           var specificTree = tree["vocabulary-list"].filter(function(v){
+  //             return v["character"] == u[i].toString();
+  //           }); // end function
+  //           if(specificTree.length > 0){
+  //             var replace = new RegExp(specificTree[0].character.toString(), "g");
+  //             //$(this).replaceWith(u.replace(replace,'|'));
+  //             var color;
+  //             if(specificTree[0].srs.toString() == "apprentice"){
+  //               color = "#F300A2";
+  //             }
+  //             else if(specificTree[0].srs.toString() == "guru"){
+  //               color ="#9F34B9";
+  //             }
+  //             else if(specificTree[0].srs.toString() == "master"){
+  //               color = "#4765E0";
+  //             }
+  //             else if(specificTree[0].srs.toString() == "enlighten"){
+  //               color ="#009CEA";
+  //             }
+  //             else if(specificTree[0].srs.toString() == "burned"){
+  //               color = "#B04A49";
+  //             }
+  //             tempU += '<span style=\"color:' + color + '; padding:0; margin: 0; display: inline\">' + specificTree[0].character + '</span>';
+  //             //$(this).replaceWith(tempU.replace(replace,'<span style=\"color:blue; padding:0; margin: 0; display: inline\">' + specificTree[0].character + '</span>'));
+  //             //console.log(u.length);
+  //           }
+  //           else{
+  //             tempU+=u[i];
+  //           }
+  //
+  //         } // end else
+  //       } // end for
+  //       $(this).replaceWith(tempU);
+  //       //console.log(tempU);
+  //     }
+  //   }); // end anon function
+  // }) // end chrome.storage.get
 }; //end search data
 
 

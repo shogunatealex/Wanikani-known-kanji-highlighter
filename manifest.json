@@ -5,7 +5,8 @@
   "content_scripts": [
       {
         "matches": ["*://*/*"],
-        "js": ["jquery-3.2.1.js", "highlightKanji.js"]
+        "js": ["jquery-3.2.1.js", "highlightKanji.js"],
+        "css": ["styles.css"]
       }
     ],
   "permissions":[
