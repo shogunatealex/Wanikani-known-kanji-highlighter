@@ -1,11 +1,13 @@
-$(window).bind("load", function() {
+$(window).on("load", function() {
   callWanikani(function(x){
+    console.log('here');
     saveData(x,function(){
+      console.log("here2");
       searchData();
     })
   });
     });
-var testText = $('p:last').text();
+//var testText = $('p:last').text();
 //$('div, li, ol, p, h1, h2, h3, h4, h5, span, a, th, td, code, strong, em').css("color", "red");
 
 
@@ -83,16 +85,17 @@ function searchData () {
     //console.log(tree);
     //console.log("hello" == "hello");
     // grab all of the html pages text
-    var DOMlibrary = $('tr, td, ruby, span, p, h1, h2, h3, h4, h5, a');
+    //var DOMlibrary = $('tr, td, ruby, span, p, h1, h2, h3, h4, h5, a');
     var temp = $('body').find("*").contents().each(function(){
       if(this.nodeType == 3){
         var u = this.nodeValue;
         var tempU = "";
-        console.log(u);
+        //console.log(u);
         for(var i = 0; i < u.length; i++){
           //console.log(u[i] + " " + i);
           //u[i] = u[i].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、1234567890?)(,}{})]/g,"");
-          var checker = ["[", "]", "(", ")", ".", ",", ";", "}", "{", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0","#", "<", ":", "=", "!", "-", "_", "&", "@", "\"", "\'"];
+          var checker = "[]().,;}{1234567890!@#$%^&*-_\n\r=+\"\'`~?.,<>。わらやまはなたさかありみひにちしきいるゆむふぬつすくうれめへねてせけえをろよもほのとそこおん ".split("");
+          //var checker = ["[", "]", "(", ")", ".", ",", ";", "}", "{", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0","#", "<", ":", "=", "!", "-", "_", "&", "@", "\"", "\'"];
           if(u[i] == "" || (u[i].toLowerCase() != u[i].toUpperCase()) || u[i] == " " || checker.indexOf(u[i]) > -1){
             tempU+= u[i];
           }
@@ -115,7 +118,7 @@ function searchData () {
               else if(specificTree[0].srs.toString() == "master"){
                 color = "#4765E0";
               }
-              else if(specificTree[0].srs.toString() == "enlightened"){
+              else if(specificTree[0].srs.toString() == "enlighten"){
                 color ="#009CEA";
               }
               else if(specificTree[0].srs.toString() == "burned"){
@@ -134,91 +137,7 @@ function searchData () {
         $(this).replaceWith(tempU);
         //console.log(tempU);
       }
-    })
-    // console.log(temp);
-    // var reg = /_link_/g;
-    //
-    // //temp[5].replaceWith(temp[5].nodeValue.replace("一", "<span>here</span>"));
-    // console.log(temp);
-    // var temp2 = $('li');
-    //
-    // console.log(temp2.contents());
-    //
-    // //DOMlibrary += $('li').children();
-    // console.log(DOMlibrary);
-    // // link through grabbing all their text
-    // var textObjectArray = [];
-    // var inTag = 0;
-    // for (var i = 0; i < DOMlibrary.length; i++){
-    //   var arrayIndex = i;
-    //   var splitTempLibrary = DOMlibrary[i.toString()].innerHTML.split("");
-    //   //DOMlibrary[i.toString()].innerHTML = DOMlibrary[i.toString()].innerHTML.replace("昨日", "<span style=\"color:blue\">replaced</span>");
-    //
-    //   //console.log(DOMlibrary[i.toString()].textContent);
-    //   //console.log(DOMlibrary[i.toString()].innerHTML);
-    //   //console.log(DOMlibrary[i.toString()].nodeName);
-    //
-    //   for(var j = 0; j < splitTempLibrary.length; j++){
-    //     // cleans strings of punctuation
-    //     var toPush = splitTempLibrary[j].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()\n\r、]/g,"");
-    //     if (toPush == "" || (toPush.toLowerCase() != toPush.toUpperCase()) || toPush == " "){
-    //
-    //     } // end if
-    //     else if (toPush == ">"){
-    //       inTag = 0;
-    //     }
-    //     else if (inTag == 1){
-    //
-    //     }
-    //     else if (toPush == "<"){
-    //         inTag = 1;
-    //     }
-    //     else{
-    //
-    //       var specificTree = tree["vocabulary-list"].filter(function(v){
-    //         return v["character"] == toPush.toString();
-    //       })
-    //       if(specificTree.length > 0){
-    //         //console.log(DOMlibrary);
-    //         var color;
-    //         if(specificTree[0].srs.toString() == "apprentice"){
-    //           color = "#F300A2";
-    //         }
-    //         else if(specificTree[0].srs.toString() == "guru"){
-    //           color ="#9F34B9";
-    //         }
-    //         else if(specificTree[0].srs.toString() == "master"){
-    //           color = "#4765E0";
-    //         }
-    //         else if(specificTree[0].srs.toString() == "enlightened"){
-    //           color ="#009CEA";
-    //         }
-    //         else if(specificTree[0].srs.toString() == "burned"){
-    //           color = "#B04A49";
-    //         }
-    //         var replace = new RegExp(specificTree[0].character.toString(), "g");
-    //         //DOMlibrary[i].innerHTML = DOMlibrary[i].innerHTML.replace(replace, "<span style=\"color: " + color + ";padding:0; margin: 0; display: inline\">" + specificTree[0].character + "</span>");
-    //         //DOMlibrary[i].contents().filter(function(){return this.nodeType == 3;})[0].nodeValue = DOMlibrary[i].contents().filter(function(){return this.nodeType == 3;})[0].nodeValue.replace(replace, "<span style=\"color: " + color + ";padding:0; margin: 0; display: inline\">" + specificTree[0].character + "</span>");
-    //
-    //       }
-    //       textObjectArray.push({text: toPush, DOMposition: arrayIndex});
-    //     } // end else
-    //     // should be replaced with Red-black tree
-    //   } // end for j
-    // } // end for i
-    //
-    // var counter = 0;
-
-
-
-
-
-    // var objects = textObjectArray.filter(function(v){
-    //   // grabs all objects with text of japanese
-    //   return v["text"].toLowerCase() == "journey";
-    // });
-
-
+    });
   }) // end chrome.storage.get
 }; //end search data
 
